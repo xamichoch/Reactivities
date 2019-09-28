@@ -6,15 +6,34 @@ import agent from "../api/agent";
 configure({ enforceActions: "always" });
 
 class ActivityStore {
-  @observable activityRegistry = new Map<string, IActivity>();
+  @observable activityRegistry = new Map();
   @observable loadingInitial = false;
   @observable activity: IActivity | null = null;
   @observable submitting: boolean = false;
   @observable target: string = "";
 
   @computed get activitiesByDate() {
-    return Array.from(this.activityRegistry.values()).sort(
+    return this.groupActivitiesByDate(
+      Array.from(this.activityRegistry.values())
+    );
+  }
+
+  groupActivitiesByDate(activities: IActivity[]) {
+    const sortedActivities = activities.sort(
       (a, b) => Date.parse(a.date) - Date.parse(b.date)
+    );
+
+    return Object.entries(
+      sortedActivities.reduce(
+        (activities, activity) => {
+          const date = activity.date.split("T")[0];
+          activities[date] = activities[date]
+            ? [...activities[date], activity]
+            : [activity];
+          return activities;
+        },
+        {} as { [key: string]: IActivity[] }
+      )
     );
   }
 
@@ -28,6 +47,7 @@ class ActivityStore {
           this.activityRegistry.set(activityRegistry.id, activityRegistry);
         });
         this.loadingInitial = false;
+        console.log(this.groupActivitiesByDate(activities));
       });
     } catch (error) {
       runInAction("Loading activities error", () => {
