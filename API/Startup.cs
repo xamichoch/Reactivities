@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Persistence;
 using MediatR;
 using Application.Activities;
+using Microsoft.Extensions.Hosting;
 
 namespace API
 {
@@ -40,11 +41,11 @@ namespace API
 
             services.AddMediatR(typeof(List.Handler).Assembly);
 
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.AddControllers();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -56,10 +57,13 @@ namespace API
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 // app.UseHsts();
             }
-
+            app.UseRouting();
             // app.UseHttpsRedirection();
             app.UseCors("CorsPolicy");
-            app.UseMvc();
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
         }
     }
 }
